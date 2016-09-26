@@ -21,16 +21,25 @@ import org.eclipse.che.ide.api.mvp.View;
 public interface SubversionAuthenticatorView extends View<SubversionAuthenticatorView.ActionDelegate> {
 
     interface ActionDelegate {
+
         /** Defines what's done when the user clicks cancel. */
         void onCancelled();
-
         /** Defines what's done when the user clicks OK. */
         void onAccepted();
+        void onCredentialsChanged();
+
     }
+    String getUserName();
+
+    String getPassword();
+
+    /**
+     * Clean userNameTextBox and passwordTextBox fields
+     */
+    void cleanCredentials();
+
+    void setEnabledLogInButton(boolean enabled);
 
     /** Show dialog. */
     void showDialog();
-
-    /** Performs when user select generate keys. */
-    boolean isGenerateKeysSelected();
 }

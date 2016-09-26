@@ -1646,12 +1646,12 @@ class JGitConnection implements GitConnection {
                 final ProviderInfo info = credentialsLoader.getProviderInfo(remoteUrl);
                 if (info != null) {
                     throw new UnauthorizedException(exception.getMessage(),
-                                                    ErrorCodes.UNAUTHORIZED_GIT_OPERATION,
+                                                    ErrorCodes.UNAUTHORIZED_VCS_OPERATION,
                                                     ImmutableMap.of(PROVIDER_NAME, info.getProviderName(),
                                                                     AUTHENTICATE_URL, info.getAuthenticateUrl(),
                                                                     "authenticated", Boolean.toString(credentials != null)));
                 }
-                throw new UnauthorizedException(exception.getMessage(), ErrorCodes.UNAUTHORIZED_GIT_OPERATION);
+                throw new UnauthorizedException(exception.getMessage(), ErrorCodes.UNAUTHORIZED_VCS_OPERATION);
             } else {
                 throw exception;
             }

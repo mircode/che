@@ -10,59 +10,105 @@
  *******************************************************************************/
 package org.eclipse.che.plugin.svn.ide.authenticator;
 
-import com.google.gwt.dom.client.Style;
-import com.google.gwt.user.client.ui.CheckBox;
-import com.google.gwt.user.client.ui.DockLayoutPanel;
-import com.google.gwt.user.client.ui.InlineHTML;
+import com.google.gwt.core.client.GWT;
+import com.google.gwt.event.dom.client.ClickEvent;
+import com.google.gwt.event.dom.client.ClickHandler;
+import com.google.gwt.event.dom.client.KeyPressEvent;
+import com.google.gwt.event.dom.client.KeyPressHandler;
+import com.google.gwt.uibinder.client.UiBinder;
+import com.google.gwt.uibinder.client.UiField;
+import com.google.gwt.user.client.ui.Button;
+import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.Widget;
 import com.google.inject.Inject;
 
-import org.eclipse.che.ide.api.ProductInfoDataProvider;
-import org.eclipse.che.ide.api.dialogs.CancelCallback;
-import org.eclipse.che.ide.api.dialogs.ConfirmCallback;
-import org.eclipse.che.ide.api.dialogs.DialogFactory;
+import org.eclipse.che.ide.ui.window.Window;
 import org.eclipse.che.plugin.svn.ide.SubversionExtensionLocalizationConstants;
 
 /**
- * @author Roman Nikitenko
+ * @author Igor Vinokur
  */
-public class SubversionAuthenticatorViewImpl implements SubversionAuthenticatorView {
+public class SubversionAuthenticatorViewImpl extends Window implements SubversionAuthenticatorView {
 
-    private DialogFactory              dialogFactory;
-    private ActionDelegate             delegate;
+    interface SubversionAuthenticatorImplUiBinder extends UiBinder<Widget, SubversionAuthenticatorViewImpl> {
+    }
 
+    private static SubversionAuthenticatorImplUiBinder uiBinder = GWT.create(SubversionAuthenticatorImplUiBinder.class);
 
-    private CheckBox        isGenerateKeys;
     private SubversionExtensionLocalizationConstants locale;
-    private DockLayoutPanel contentPanel;
+    private ActionDelegate                           delegate;
+
+    @UiField
+    TextBox userNameTextBox;
+    @UiField
+    TextBox passwordTextBox;
+
+    private final Button acceptButton;
 
     @Inject
-    public SubversionAuthenticatorViewImpl(DialogFactory dialogFactory,
-                                           SubversionExtensionLocalizationConstants locale,
-                                           ProductInfoDataProvider productInfoDataProvider) {
-        this.dialogFactory = dialogFactory;
+    public SubversionAuthenticatorViewImpl(SubversionExtensionLocalizationConstants locale) {
+        Widget widget = uiBinder.createAndBindUi(this);
+        this.setWidget(widget);
+        this.setTitle(locale.cleanupTitle());
+        acceptButton = createButton("Log In", "svn-authenticate-login", new ClickHandler() {
+            @Override
+            public void onClick(ClickEvent event) {
+                delegate.onAccepted();
+            }
+        });
+        Button cancelButton = createButton("Cancel", "debugId", new ClickHandler() {
+            @Override
+            public void onClick(ClickEvent event) {
+                delegate.onCancelled();
+            }
+        });
 
-        isGenerateKeys = new CheckBox(locale.subversionLabel());
-        this.locale = locale;
-        isGenerateKeys.setValue(true);
-
-        contentPanel = new DockLayoutPanel(Style.Unit.PX);
-        contentPanel.addNorth(new InlineHTML(productInfoDataProvider.getName()), 20);
-        contentPanel.addNorth(isGenerateKeys, 20);
+        userNameTextBox.addDomHandler(new KeyPressHandler() {
+            @Override
+            public void onKeyPress(KeyPressEvent event) {
+                delegate.onCredentialsChanged();
+            }
+        }, KeyPressEvent.getType());
+        passwordTextBox.addDomHandler(new KeyPressHandler() {
+            @Override
+            public void onKeyPress(KeyPressEvent event) {
+                delegate.onCredentialsChanged();
+            }
+        }, KeyPressEvent.getType());
+        addButtonToFooter(acceptButton);
+        addButtonToFooter(cancelButton);
     }
 
     @Override
     public void showDialog() {
-        isGenerateKeys.setValue(true);
-        dialogFactory.createConfirmDialog(locale.cleanupTitle(),
-                                          contentPanel,
-                                          getConfirmCallback(),
-                                          getCancelCallback()).show();
+        super.show();
     }
 
     @Override
-    public boolean isGenerateKeysSelected() {
-        return isGenerateKeys.getValue();
+    public String getUserName() {
+        return userNameTextBox.getText();
+    }
+
+    @Override
+    public String getPassword() {
+        return passwordTextBox.getText();
+    }
+
+    @Override
+    public void cleanCredentials() {
+        userNameTextBox.setText("");
+        passwordTextBox.setText("");
+        setEnabledLogInButton(false);
+    }
+
+//    @UiHandler({"userNameTextBox", "passwordTextBox"})
+//    void credentialChangeHandler(final ValueChangeEvent<String> event) {
+//        delegate.onCredentialsChanged();
+//    }
+
+    @Override
+    public void setEnabledLogInButton(boolean enabled) {
+        acceptButton.setEnabled(enabled);
     }
 
     @Override
@@ -70,26 +116,5 @@ public class SubversionAuthenticatorViewImpl implements SubversionAuthenticatorV
         this.delegate = delegate;
     }
 
-    @Override
-    public Widget asWidget() {
-        return contentPanel;
-    }
 
-    private ConfirmCallback getConfirmCallback() {
-        return new ConfirmCallback() {
-            @Override
-            public void accepted() {
-                delegate.onAccepted();
-            }
-        };
-    }
-
-    private CancelCallback getCancelCallback() {
-        return new CancelCallback() {
-            @Override
-            public void cancelled() {
-                delegate.onCancelled();
-            }
-        };
-    }
 }

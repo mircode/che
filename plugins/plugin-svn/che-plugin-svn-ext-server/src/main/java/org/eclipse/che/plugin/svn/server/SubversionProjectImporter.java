@@ -28,7 +28,10 @@ import java.io.IOException;
 
 import org.eclipse.che.plugin.svn.server.credentials.CredentialsException;
 import org.eclipse.che.plugin.svn.server.credentials.CredentialsProvider;
+import org.eclipse.che.plugin.svn.server.credentials.CredentialsProvider.Credentials;
 import org.eclipse.che.plugin.svn.shared.CheckoutRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static org.eclipse.che.dto.server.DtoFactory.newDto;
 
@@ -37,6 +40,8 @@ import static org.eclipse.che.dto.server.DtoFactory.newDto;
  */
 @Singleton
 public class SubversionProjectImporter implements ProjectImporter {
+
+    private static final Logger LOG = LoggerFactory.getLogger(SubversionProjectImporter.class);
 
     public static final String ID = "subversion";
 
@@ -79,26 +84,19 @@ public class SubversionProjectImporter implements ProjectImporter {
             throw new IOException("Project cannot be imported into \"" + baseFolder.getName() + "\".  "
                                   + "It is not a folder.");
         }
-
+        Credentials credentials = null;
         final String location = sourceStorage.getLocation();
-
-        String[] credentials = null;
         try {
-            CredentialsProvider.Credentials credentialsProviderCredentials = credentialsProvider.getCredentials(location);
-            if (credentialsProviderCredentials != null) {
-                credentials = new String[]{credentialsProviderCredentials.getUsername(), credentialsProviderCredentials.getPassword()};
-            }
+            credentials = credentialsProvider.getCredentials(location);
         } catch (CredentialsException e) {
-//            Log.error(SubversionProjectImporter.class, e);
+            LOG.error(e.getMessage(), e);
         }
-
-
         try {
             if (credentials != null) {
                 subversionApi.checkout(newDto(CheckoutRequest.class)
                                                .withProjectPath(baseFolder.getVirtualFile().toIoFile().getAbsolutePath())
                                                .withUrl(location),
-                                       credentials);
+                                       new String[]{credentials.getUsername(), credentials.getPassword()});
             } else {
                 subversionApi.checkout(newDto(CheckoutRequest.class)
                                                .withProjectPath(baseFolder.getVirtualFile().toIoFile().getAbsolutePath())
@@ -107,10 +105,9 @@ public class SubversionProjectImporter implements ProjectImporter {
         } catch (SubversionException exception) {
             if (exception.getMessage().contains("Authentication failed")) {
                 throw new UnauthorizedException(exception.getMessage(),
-                                                ErrorCodes.UNAUTHORIZED_GIT_OPERATION,
+                                                ErrorCodes.UNAUTHORIZED_VCS_OPERATION,
                                                 ImmutableMap.of("providerName", "svn",
-                                                                "authenticateUrl", location,
-                                                                "authenticated", "false"));
+                                                                "authenticateUrl", location));
             } else {
                 throw exception;
             }

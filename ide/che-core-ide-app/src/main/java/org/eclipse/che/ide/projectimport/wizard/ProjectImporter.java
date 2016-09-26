@@ -44,7 +44,7 @@ import java.util.Map;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static org.eclipse.che.api.core.ErrorCodes.UNABLE_GET_PRIVATE_SSH_KEY;
-import static org.eclipse.che.api.core.ErrorCodes.UNAUTHORIZED_GIT_OPERATION;
+import static org.eclipse.che.api.core.ErrorCodes.UNAUTHORIZED_VCS_OPERATION;
 import static org.eclipse.che.api.git.shared.ProviderInfo.AUTHENTICATE_URL;
 import static org.eclipse.che.api.git.shared.ProviderInfo.PROVIDER_NAME;
 import static org.eclipse.che.api.promises.client.callback.AsyncPromiseHelper.createFromAsyncRequest;
@@ -136,7 +136,7 @@ public class ProjectImporter extends AbstractImporter {
                                  switch (getErrorCode(exception.getCause())) {
                                      case UNABLE_GET_PRIVATE_SSH_KEY:
                                          throw new IllegalStateException(localizationConstant.importProjectMessageUnableGetSshKey());
-                                     case UNAUTHORIZED_GIT_OPERATION:
+                                     case UNAUTHORIZED_VCS_OPERATION:
                                          final Map<String, String> attributes = ExceptionUtils.getAttributes(exception.getCause());
                                          final String providerName = attributes.get(PROVIDER_NAME);
                                          final String authenticateUrl = attributes.get(AUTHENTICATE_URL);
@@ -170,7 +170,8 @@ public class ProjectImporter extends AbstractImporter {
                     authenticator = oAuth2AuthenticatorRegistry.getAuthenticator("default");
                 }
 
-                authenticator.authenticate(OAuth2AuthenticatorUrlProvider.get(restContext, authenticateUrl),
+                authenticator.authenticate(authenticator.getProviderName().equals("svn") ? authenticateUrl :
+                                           OAuth2AuthenticatorUrlProvider.get(restContext, authenticateUrl),
                                            new AsyncCallback<OAuthStatus>() {
                                                @Override
                                                public void onFailure(Throwable caught) {
