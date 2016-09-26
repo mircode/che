@@ -24,6 +24,10 @@ test-output/
 *.o
 *.so
 
+# TypeScript built source #
+###########################
+dashboard/src/**/*.js
+
 # Packages #
 ############
 # it's better to unpack these files and commit the raw source
