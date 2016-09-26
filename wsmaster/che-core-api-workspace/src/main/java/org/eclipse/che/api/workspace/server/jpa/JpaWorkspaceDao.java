@@ -60,7 +60,7 @@ public class JpaWorkspaceDao implements WorkspaceDao {
         } catch (DuplicateKeyException dkEx) {
             throw new ConflictException(format("Workspace with id '%s' or name '%s' in namespace '%s' already exists",
                                                workspace.getId(),
-                                               workspace.getName(),
+                                               workspace.getConfig().getName(),
                                                workspace.getNamespace()));
         } catch (RuntimeException x) {
             throw new ServerException(x.getMessage(), x);
@@ -75,7 +75,7 @@ public class JpaWorkspaceDao implements WorkspaceDao {
             return doUpdate(update);
         } catch (DuplicateKeyException dkEx) {
             throw new ConflictException(format("Workspace with name '%s' in namespace '%s' already exists",
-                                               update.getName(),
+                                               update.getConfig().getName(),
                                                update.getNamespace()));
         } catch (RuntimeException x) {
             throw new ServerException(x.getMessage(), x);
@@ -154,6 +154,7 @@ public class JpaWorkspaceDao implements WorkspaceDao {
 
     @Transactional
     protected void doCreate(WorkspaceImpl workspace) {
+        workspace.syncName();
         manager.get().persist(workspace);
     }
 
@@ -170,6 +171,7 @@ public class JpaWorkspaceDao implements WorkspaceDao {
         if (manager.get().find(WorkspaceImpl.class, update.getId()) == null) {
             throw new NotFoundException(format("Workspace with id '%s' doesn't exist", update.getId()));
         }
+        update.syncName();
         return manager.get().merge(update);
     }
 
