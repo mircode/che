@@ -76,18 +76,20 @@ public class SubversionAuthenticatorImpl implements OAuth2Authenticator, OAuthCa
     }
 
     @Override
-    public void onCancelled() {
+    public void onCancelClicked() {
         callback.onFailure(new Exception("Authorization request rejected by user."));
+        view.closeDialog();
     }
 
     @Override
-    public void onAccepted() {
+    public void onLogInClicked() {
         clientService.saveCredentials(authenticationUrl, view.getUserName(), view.getPassword()).then(new Operation<Void>() {
             @Override
             public void apply(Void arg) throws OperationException {
                 onAuthenticated(OAuthStatus.fromValue(3));
             }
         });
+        view.closeDialog();
     }
 
     @Override

@@ -15,31 +15,39 @@ import com.google.inject.ImplementedBy;
 import org.eclipse.che.ide.api.mvp.View;
 
 /**
- * @author Roman Nikitenko
+ * The view of {@link SubversionAuthenticatorImpl}.
+ *
+ * @author Igor Vinokur
  */
 @ImplementedBy(SubversionAuthenticatorViewImpl.class)
-public interface SubversionAuthenticatorView extends View<SubversionAuthenticatorView.ActionDelegate> {
+interface SubversionAuthenticatorView extends View<SubversionAuthenticatorView.ActionDelegate> {
 
     interface ActionDelegate {
+        /** Performs any actions appropriate in response to the user clicks cancel button. */
+        void onCancelClicked();
 
-        /** Defines what's done when the user clicks cancel. */
-        void onCancelled();
-        /** Defines what's done when the user clicks OK. */
-        void onAccepted();
+        /** Performs any actions appropriate in response to the user clicks Log In button. */
+        void onLogInClicked();
+
+        /** Performs any actions appropriate in response to the user having changed the user name or password */
         void onCredentialsChanged();
-
     }
+
+    /** @return username */
     String getUserName();
 
+    /** @return password */
     String getPassword();
 
-    /**
-     * Clean userNameTextBox and passwordTextBox fields
-     */
+    /** Clean username and password fields. */
     void cleanCredentials();
 
+    /** Enable or disable Log In button. */
     void setEnabledLogInButton(boolean enabled);
 
     /** Show dialog. */
     void showDialog();
+
+    /** Close dialog. */
+    void closeDialog();
 }

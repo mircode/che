@@ -13,10 +13,10 @@ package org.eclipse.che.plugin.svn.ide.authenticator;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
-import com.google.gwt.event.dom.client.KeyPressEvent;
-import com.google.gwt.event.dom.client.KeyPressHandler;
+import com.google.gwt.event.dom.client.KeyUpEvent;
 import com.google.gwt.uibinder.client.UiBinder;
 import com.google.gwt.uibinder.client.UiField;
+import com.google.gwt.uibinder.client.UiHandler;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.Widget;
@@ -35,7 +35,6 @@ public class SubversionAuthenticatorViewImpl extends Window implements Subversio
 
     private static SubversionAuthenticatorImplUiBinder uiBinder = GWT.create(SubversionAuthenticatorImplUiBinder.class);
 
-    private SubversionExtensionLocalizationConstants locale;
     private ActionDelegate                           delegate;
 
     @UiField
@@ -43,45 +42,39 @@ public class SubversionAuthenticatorViewImpl extends Window implements Subversio
     @UiField
     TextBox passwordTextBox;
 
-    private final Button acceptButton;
+    private final Button loginButton;
 
     @Inject
     public SubversionAuthenticatorViewImpl(SubversionExtensionLocalizationConstants locale) {
         Widget widget = uiBinder.createAndBindUi(this);
         this.setWidget(widget);
-        this.setTitle(locale.cleanupTitle());
-        acceptButton = createButton("Log In", "svn-authenticate-login", new ClickHandler() {
+        this.setTitle(locale.authenticatorTitle());
+
+        loginButton = createPrimaryButton(locale.authenticatorLoginButton(), "svn-authentication-username", new ClickHandler() {
             @Override
             public void onClick(ClickEvent event) {
-                delegate.onAccepted();
+                delegate.onLogInClicked();
             }
         });
-        Button cancelButton = createButton("Cancel", "debugId", new ClickHandler() {
+        Button cancelButton = createButton(locale.authenticatorCancelButton(), "svn-authentication-password", new ClickHandler() {
             @Override
             public void onClick(ClickEvent event) {
-                delegate.onCancelled();
+                delegate.onCancelClicked();
             }
         });
 
-        userNameTextBox.addDomHandler(new KeyPressHandler() {
-            @Override
-            public void onKeyPress(KeyPressEvent event) {
-                delegate.onCredentialsChanged();
-            }
-        }, KeyPressEvent.getType());
-        passwordTextBox.addDomHandler(new KeyPressHandler() {
-            @Override
-            public void onKeyPress(KeyPressEvent event) {
-                delegate.onCredentialsChanged();
-            }
-        }, KeyPressEvent.getType());
-        addButtonToFooter(acceptButton);
+        addButtonToFooter(loginButton);
         addButtonToFooter(cancelButton);
     }
 
     @Override
     public void showDialog() {
         super.show();
+    }
+
+    @Override
+    public void closeDialog() {
+        super.hide();
     }
 
     @Override
@@ -101,20 +94,18 @@ public class SubversionAuthenticatorViewImpl extends Window implements Subversio
         setEnabledLogInButton(false);
     }
 
-//    @UiHandler({"userNameTextBox", "passwordTextBox"})
-//    void credentialChangeHandler(final ValueChangeEvent<String> event) {
-//        delegate.onCredentialsChanged();
-//    }
+    @UiHandler({"userNameTextBox", "passwordTextBox"})
+    void credentialChangeHandler(KeyUpEvent event) {
+        delegate.onCredentialsChanged();
+    }
 
     @Override
     public void setEnabledLogInButton(boolean enabled) {
-        acceptButton.setEnabled(enabled);
+        loginButton.setEnabled(enabled);
     }
 
     @Override
     public void setDelegate(ActionDelegate delegate) {
         this.delegate = delegate;
     }
-
-
 }

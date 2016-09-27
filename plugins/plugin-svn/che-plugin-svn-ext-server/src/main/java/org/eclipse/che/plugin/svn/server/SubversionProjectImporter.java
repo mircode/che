@@ -104,7 +104,7 @@ public class SubversionProjectImporter implements ProjectImporter {
             }
         } catch (SubversionException exception) {
             if (exception.getMessage().contains("Authentication failed")) {
-                throw new UnauthorizedException(exception.getMessage(),
+                throw new UnauthorizedException("Authentication required",
                                                 ErrorCodes.UNAUTHORIZED_VCS_OPERATION,
                                                 ImmutableMap.of("providerName", "svn",
                                                                 "authenticateUrl", location));
