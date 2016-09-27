@@ -37,4 +37,3 @@ public class CProjectGenerator implements CreateProjectHandler {
         return Constants.C_PROJECT_TYPE_ID;
     }
 }
-
