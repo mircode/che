@@ -33,7 +33,7 @@ public class NodeJsProjectGenerator implements CreateProjectHandler {
     public void onCreateProject(FolderEntry baseFolder,
                                 Map<String, AttributeValue> attributes,
                                 Map<String, String> options) throws ForbiddenException, ConflictException, ServerException {
-        baseFolder.createFile(FILE_NAME, getClass().getClassLoader().getResourceAsStream("files/default_content"));
+        baseFolder.createFile(FILE_NAME, getClass().getClassLoader().getResourceAsStream("files/default_python_content"));
     }
 
     @Override
